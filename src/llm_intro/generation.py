@@ -258,7 +258,7 @@ def main(config_path: str = "configs/config.yaml",
 if __name__ == "__main__":
     import argparse
     parser = argparse.ArgumentParser(description="Generate text with Transformer LM")
-    parser.add_argument("--config", type=str, default="configs/config.yaml", help="Path to config file")
+    parser.add_argument("--config", type=str, default="src/configs/config_llm_intro.yaml", help="Path to config file")
     parser.add_argument("--prompt", type=str, default=None, help="Prompt text")
     
     args = parser.parse_args()

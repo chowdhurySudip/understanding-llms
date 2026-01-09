@@ -348,8 +348,8 @@ def main():
     parser.add_argument(
         "--config",
         type=str,
-        default="configs/config.yaml",
-        help="Path to YAML configuration file (default: configs/config.yaml)"
+        default="src/configs/config_llm_intro.yaml",
+        help="Path to YAML configuration file (default: src/configs/config_llm_intro.yaml)"
     )
     parser.add_argument(
         "--resume",
