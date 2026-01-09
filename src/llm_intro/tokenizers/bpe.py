@@ -12,7 +12,7 @@ Key features:
 Typical usage:
     tokenizer = BPETokenizer(pattern=PAT, max_vocab_size=10000, special_tokens=["<|endoftext|>"])
     tokenizer.train(input_path="data.txt", num_processes=4)
-    tokenizer.save(dest="artifacts/")
+    tokenizer.save(dest="artifacts/llm_intro/tokenizer/")
 """
 
 import os
@@ -140,7 +140,7 @@ class BPETokenizer:
     Example:
         >>> tokenizer = BPETokenizer(PAT, 10000, ["<|endoftext|>"])
         >>> tokenizer.train("data.txt", num_processes=4)
-        >>> tokenizer.save("artifacts/")
+        >>> tokenizer.save("artifacts/llm_intro/tokenizer/")
     """
     MAX_BYTES = 256  # Number of possible byte values (0-255)
 
@@ -405,7 +405,7 @@ def train_tokenizer(
         special_tokens: List of special tokens to include in the vocabulary
         **kwargs: Additional keyword arguments:
             - num_processes (int): Number of parallel processes (default: 3)
-            - dest (str): Directory to save artifacts (default: "artifacts")
+            - dest (str): Directory to save artifacts (default: "artifacts/llm_intro/tokenizer")
     
     Returns:
         tuple containing:
@@ -419,7 +419,7 @@ def train_tokenizer(
     tokenizer.train(input_path, num_processes=num_processes)
     
     # Save to disk
-    tokenizer.save(kwargs.get("dest", "artifacts"))
+    tokenizer.save(kwargs.get("dest", "artifacts/llm_intro/tokenizer"))
     
     return tokenizer.vocab, tokenizer.merges
 
@@ -490,8 +490,8 @@ if __name__ == "__main__":
     vocab, merges = train_tokenizer(input_path, 10000, [ENDOFTEXT_TOKEN], num_processes=10)
     print(f"Total: {time()-start:.2f}s")
     loaded_vocab, loaded_merges = load_tokenizers(
-        "artifacts/TinyStoriesV2-GPT4-train-vocab.json", 
-        "artifacts/TinyStoriesV2-GPT4-train-merges.txt"
+        "artifacts/llm_intro/tokenizer/TinyStoriesV2-GPT4-train-vocab.json", 
+        "artifacts/llm_intro/tokenizer/TinyStoriesV2-GPT4-train-merges.txt"
     )
     assert vocab == loaded_vocab
     assert merges == loaded_merges  # List equality preserves order

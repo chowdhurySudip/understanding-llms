@@ -235,13 +235,13 @@ def tokenize_file_to_npy(
 
 if __name__=="__main__":
     # Example usage:
-    src_file = "llm_intro/data/TinyStoriesV2-GPT4-train.txt"
-    vocab_file = "llm_intro/artifacts/TinyStoriesV2-GPT4-train-vocab.json"
-    merges_file = "llm_intro/artifacts/TinyStoriesV2-GPT4-train-merges.txt"
+    src_file = "data/TinyStoriesV2-GPT4-train.txt"
+    vocab_file = "artifacts/llm_intro/tokenizer/TinyStoriesV2-GPT4-train-vocab.json"
+    merges_file = "artifacts/llm_intro/tokenizer/TinyStoriesV2-GPT4-train-merges.txt"
     tokenize_file_to_npy(
         src_file, 
         vocab_file, 
         merges_file, 
-        "llm_intro/artifacts/TinyStoriesV2-GPT4-train-encoded.npy",
+        "artifacts/llm_intro/data/TinyStoriesV2-GPT4-train-encoded.npy",
         special_tokens=["<|endoftext|>"]
     )
