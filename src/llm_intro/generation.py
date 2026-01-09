@@ -215,7 +215,7 @@ def main(config_path: str = "configs/config.yaml",
     # Setup model
     print("Setting up model...")
     model = setup_model(config)
-    model = torch.compile(model, backend="aot_eager")
+    model: TransformerLM = torch.compile(model, backend="aot_eager") # type: ignore
     
     # Load checkpoint
     model = load_checkpoint(model, gen_config['checkpoint_path'])

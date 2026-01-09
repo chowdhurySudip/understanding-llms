@@ -279,7 +279,7 @@ def train(config: Dict[str, Any]) -> None:
     train_data, val_data = setup_data(config)
     model = setup_model(config)
     optimizer = setup_optimizer(model, config)
-    model = torch.compile(model, backend="aot_eager")
+    model: TransformerLM = torch.compile(model, backend="aot_eager")  # type: ignore
     
     # Extract configuration values
     training_config = config['training']
