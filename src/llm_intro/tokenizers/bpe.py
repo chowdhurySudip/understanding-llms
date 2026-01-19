@@ -289,8 +289,14 @@ class BPETokenizer:
         """
         # Store filename for later use in save()
         self.filename = Path(input_path).stem
+        
+        print(f"Starting BPE tokenizer training on {input_path}")
+        print(f"Target vocabulary size: {self.max_vocab_size}")
+        print(f"Number of merges needed: {self.num_merges}")
+        print(f"Using {num_processes} process(es)")
 
         # Step 1: Count pre-tokens (parallelized if num_processes > 1)
+        print("\n[Step 1/4] Counting pre-tokens...")
         start = time()
         if num_processes > 1:
             # Find chunk boundaries for parallel processing
@@ -320,22 +326,27 @@ class BPETokenizer:
                 for text in text_segments
                 for m in re.finditer(self.pattern, text)
             )
-        print(f"pretoken_counters - Total: {time()-start:.2f}s")
+        print(f"✓ Pre-token counting completed in {time()-start:.2f}s")
+        print(f"  Found {len(final_counter)} unique pre-tokens")
 
         # Step 2: Convert pre-tokens to byte tuples with their counts
+        print("\n[Step 2/4] Converting pre-tokens to byte tuples...")
         start = time()
         self.pretoken_counts = [
             (tuple([bytes([b]) for b in token.encode("utf-8")]), count)
             for token, count in final_counter.items()
         ]
-        print(f"self.pretoken_counts - Total: {time()-start:.2f}s")
+        print(f"✓ Byte tuple conversion completed in {time()-start:.2f}s")
 
         # Step 3: Initialize pair statistics for all pre-tokens
+        print("\n[Step 3/4] Initializing pair statistics...")
         start = time()
         self._update_stats()
-        print(f"_update_stats - Total: {time()-start:.2f}s")
+        print(f"✓ Pair statistics initialized in {time()-start:.2f}s")
+        print(f"  Found {len(self.pair_count)} unique byte pairs")
 
         # Step 4: Iteratively merge the most frequent pair
+        print(f"\n[Step 4/4] Performing {self.num_merges} merges...")
         start = time()
         for idx in tqdm(range(self.num_merges)):
             # Find the most frequent byte pair
@@ -356,7 +367,8 @@ class BPETokenizer:
             
             # Remove the merged pair from consideration
             del self.pair_count[max_pair]
-        print(f"_merge - Total: {time()-start:.2f}s")
+        print(f"\n✓ All merges completed in {time()-start:.2f}s")
+        print(f"✓ Training complete! Final vocabulary size: {len(self.vocab)}")
     
     def save(self, dest):
         """Save vocabulary and merges to disk.
@@ -370,6 +382,7 @@ class BPETokenizer:
         Args:
             dest: Destination directory path where files will be saved
         """
+        print(f"\nSaving tokenizer to {dest}")
         dest = Path(dest)
         dest.mkdir(parents=True, exist_ok=True)
 
@@ -379,14 +392,18 @@ class BPETokenizer:
             token_id: token_bytes.decode("latin-1")
             for token_id, token_bytes in self.vocab.items()
         }
-        with open(dest/f"{self.filename}-vocab.json", "w", encoding="utf-8") as fp:
+        vocab_file = dest/f"{self.filename}-vocab.json"
+        with open(vocab_file, "w", encoding="utf-8") as fp:
             json.dump(vocab_json, fp, ensure_ascii=False, indent=2)
+        print(f"✓ Saved vocabulary to {vocab_file}")
         
         # Save merges as text file (one merge per line in JSON format)
-        with open(dest/f"{self.filename}-merges.txt", "w", encoding="utf-8") as fp:
+        merges_file = dest/f"{self.filename}-merges.txt"
+        with open(merges_file, "w", encoding="utf-8") as fp:
             for a, b in self.merges:
                 a, b = a.decode("latin-1"), b.decode("latin-1")
                 fp.write(json.dumps([a, b]) + "\n")
+        print(f"✓ Saved merges to {merges_file}")
 
 def train_tokenizer(
     input_path: str | os.PathLike,
@@ -438,6 +455,10 @@ def load_tokenizers(vocab_path, merges_path):
             - id_to_bytes: Dictionary mapping token IDs to byte sequences
             - merges: Ordered list of (byte_a, byte_b) merge pairs
     """
+    print(f"\nLoading tokenizer from:")
+    print(f"  Vocabulary: {vocab_path}")
+    print(f"  Merges: {merges_path}")
+    
     # Load vocabulary from JSON
     with open(vocab_path, "r", encoding="utf-8") as vf:
         raw_vocab = json.load(vf)
@@ -482,16 +503,35 @@ def load_tokenizers(vocab_path, merges_path):
             # Encode back to bytes using latin-1
             merges.append((a.encode("latin-1"), b.encode("latin-1")))
     
+    print(f"✓ Loaded vocabulary with {len(id_to_bytes)} tokens")
+    print(f"✓ Loaded {len(merges)} merges")
+    
     return id_to_bytes, merges
 
 if __name__ == "__main__":
-    input_path = "data/TinyStoriesV2-GPT4-train.txt"
+    input_path = "data/owt_train.txt"
+    print("="*60)
+    print("BPE TOKENIZER TRAINING")
+    print("="*60)
+    
     start = time()
-    vocab, merges = train_tokenizer(input_path, 10000, [ENDOFTEXT_TOKEN], num_processes=10)
-    print(f"Total: {time()-start:.2f}s")
+    vocab, merges = train_tokenizer(input_path, 32000, [ENDOFTEXT_TOKEN], num_processes=10)
+    total_time = time() - start
+    print(f"\n{'='*60}")
+    print(f"TOTAL TRAINING TIME: {total_time:.2f}s")
+    print(f"{'='*60}")
+    
+    print("\n" + "="*60)
+    print("VERIFYING SAVED TOKENIZER")
+    print("="*60)
+    
     loaded_vocab, loaded_merges = load_tokenizers(
-        "artifacts/llm_intro/tokenizer/TinyStoriesV2-GPT4-train-vocab.json", 
-        "artifacts/llm_intro/tokenizer/TinyStoriesV2-GPT4-train-merges.txt"
+        "artifacts/llm_intro/tokenizer/owt_train-vocab.json", 
+        "artifacts/llm_intro/tokenizer/owt_train-merges.txt"
     )
-    assert vocab == loaded_vocab
-    assert merges == loaded_merges  # List equality preserves order
+    
+    assert vocab == loaded_vocab, "Vocabulary mismatch!"
+    assert merges == loaded_merges, "Merges mismatch!"  # List equality preserves order
+    
+    print("\n✓ Verification successful! Loaded tokenizer matches trained tokenizer.")
+    print("="*60)
