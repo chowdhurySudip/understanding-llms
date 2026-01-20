@@ -24,16 +24,16 @@ import urllib.request
 from pathlib import Path
 
 FILES = [
-    {
-        "name": "TinyStoriesV2-GPT4-train.txt",
-        "url": "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt",
-        "gz": False,
-    },
-    {
-        "name": "TinyStoriesV2-GPT4-valid.txt",
-        "url": "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-valid.txt",
-        "gz": False,
-    },
+    # {
+    #     "name": "TinyStoriesV2-GPT4-train.txt",
+    #     "url": "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-train.txt",
+    #     "gz": False,
+    # },
+    # {
+    #     "name": "TinyStoriesV2-GPT4-valid.txt",
+    #     "url": "https://huggingface.co/datasets/roneneldan/TinyStories/resolve/main/TinyStoriesV2-GPT4-valid.txt",
+    #     "gz": False,
+    # },
     {
         "name": "owt_train.txt",
         "url": "https://huggingface.co/datasets/stanford-cs336/owt-sample/resolve/main/owt_train.txt.gz",
@@ -108,11 +108,15 @@ def ensure_file(entry: dict, data_dir: Path) -> None:
         # If gz exists but not target, decompress
         if gz_path.exists() and not target.exists():
             gunzip_file(gz_path, target)
+            safe_print(f"Removing gz file: {gz_path}")
+            gz_path.unlink()
             return
         # Otherwise download gz then decompress
         if not gz_path.exists():
             download_url(entry["url"], gz_path)
             gunzip_file(gz_path, target)
+            safe_print(f"Removing gz file: {gz_path}")
+            gz_path.unlink()
             return
     else:
         if target.exists():
