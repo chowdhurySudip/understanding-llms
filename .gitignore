@@ -207,7 +207,8 @@ marimo/_lsp/
 __marimo__/
 
 
-artifacts/
+# Custom ignores
+models/
 data/
 .DS_Store
 notebooks/
